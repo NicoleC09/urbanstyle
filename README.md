@@ -7,6 +7,8 @@
 
 UrbanStyle es una aplicación de escritorio en Pygame para explorar cuatro usos de IA en una tienda de moda ficticia: distribución y recorridos, pronóstico semanal, precios dinámicos y campañas visuales.
 
+**Autor:** Nicole Dayan Calderón Arevalo
+
 ## Índice
 
 - [Contexto y arquitectura](#contexto-y-arquitectura)
@@ -20,7 +22,6 @@ UrbanStyle es una aplicación de escritorio en Pygame para explorar cuatro usos 
 - [Estructura del proyecto](#estructura-del-proyecto)
 - [Pruebas y calidad](#pruebas-y-calidad)
 - [Reproducibilidad, límites y licencias](#reproducibilidad-límites-y-licencias)
-- [Documentos de entrega](#documentos-de-entrega)
 
 ## Contexto y arquitectura
 
@@ -332,18 +333,3 @@ La calidad de modelos queda limitada por el dataset y los presupuestos de entren
 - Fashion-MNIST es de Zalando Research, licencia MIT; referencia: Han Xiao, Kashif Rasul y Roland Vollgraf, [arXiv:1708.07747](https://arxiv.org/abs/1708.07747), [repositorio/licencia](https://github.com/zalandoresearch/fashion-mnist).
 - Los modelos de RL y GAN entregados son demostrativos. No se afirma convergencia ni validez para decisiones comerciales.
 - Dataset original, checkpoints y salidas pesadas están excluidos por `.gitignore`; el usuario debe obtenerlos con los pasos de instalación/entrenamiento.
-
-## Documentos de entrega
-
-- [Informe técnico](docs/informe.md)
-- [Auditoría general](docs/auditoria.md)
-- [Auditoría de documentos previos](docs/auditoria_docs_existentes.md)
-- [Explicación del proyecto](docs/explicacion_proyecto.md)
-- [Guion de presentación (8:50; versión de 5 minutos incluida)](docs/guion_presentacion.md)
-- [Guion de demo (3–4 minutos)](docs/guion_demo.md)
-- [Preguntas y respuestas](docs/preguntas_y_respuestas.md)
-- [Hoja de estudio](docs/hoja_de_estudio.md)
-- [Checklist de rúbrica](docs/checklist_rubrica.md)
-- [Instrucciones para el video de respaldo](docs/video_respaldo.md)
-- Copias previas de documentos: `docs/_previos/`.
-- Recursos para diapositivas: `outputs/presentacion/`; póster determinista: `outputs/demo/`.
