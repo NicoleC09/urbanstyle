@@ -1,0 +1,157 @@
+project:
+  name: UrbanStyle
+  language: es
+  seed: 42
+
+paths:
+  raw_data: data/raw/retail_sales_dataset.csv
+  processed_data: data/processed
+  models: models
+  outputs: outputs
+
+data:
+  categories: [Beauty, Clothing, Electronics]
+  genders: [Female, Male]
+  required_columns:
+    - Transaction ID
+    - Date
+    - Customer ID
+    - Gender
+    - Age
+    - Product Category
+    - Quantity
+    - Price per Unit
+    - Total Amount
+  week_frequency: W-SUN
+
+pricing:
+  elasticity_fallback: -1.2
+  elasticity_min_observations: 8
+  elasticity_significance_level: 0.05
+  price_step_fraction: 0.05
+  price_min_multiplier: 0.6
+  price_max_multiplier: 4.0
+  unit_cost_fraction: 0.55
+  demand_noise_std: 0.08
+  seasonality_amplitude: 0.06
+  recent_sales_window: 4
+  episode_steps: 64
+  segment_multipliers: [0.92, 1.0, 1.08]
+
+task_c:
+  total_timesteps: 12000
+  evaluation_episodes: 100
+  learning_rate: 0.0003
+  gamma: 0.99
+  ppo_n_steps: 128
+  ppo_batch_size: 64
+  dqn_buffer_size: 20000
+  dqn_learning_starts: 500
+  dqn_batch_size: 64
+  dqn_train_freq: 4
+  device: auto
+  animation_step_seconds: 0.45
+
+task_b:
+  lookback: 8
+  context_windows: [4, 8, 12]
+  train_fraction: 0.70
+  validation_fraction: 0.15
+  hidden_size: 16
+  num_layers: 1
+  dropout: 0.0
+  embedding_size: 4
+  learning_rate: 0.005
+  weight_decay: 0.0001
+  max_epochs: 250
+  early_stopping_patience: 25
+  batch_size: 32
+  moving_average_window: 4
+
+task_d:
+  latent_size: 100
+  generator_channels: 128
+  discriminator_channels: 64
+  embedding_size: 32
+  batch_size: 128
+  epochs: 80
+  max_train_samples: 60000
+  classifier_batch_size: 128
+  classifier_epochs: 20
+  learning_rate: 0.0002
+  discriminator_learning_rate_hinge: 0.0004
+  generator_learning_rate_hinge: 0.0001
+  beta1: 0.5
+  ema_decay: 0.999
+  instance_noise_std: 0.08
+  instance_noise_decay: 0.96
+  label_smoothing: 0.9
+  classifier_eval_samples: 256
+  checkpoint_interval: 10
+  snapshot_epochs: [1, 5, 10, 20, 40, 60, 80]
+  truncation: 0.8
+  sample_count: 80
+  classes: 10
+  image_size: 28
+  discount_default: 20
+  poster_templates: [Medianoche, Hielo, Eléctrico]
+  category_class_map:
+    Beauty: [Bolso]
+    Clothing: [Camiseta, Suéter, Vestido, Abrigo, Camisa]
+    Electronics: [Zapatilla, Botín]
+  poster_style_default: Neón
+
+integration:
+  pricing_algorithm: PPO
+  pathfinding_algorithm: A*
+  layout: Clásico
+  customers: 24
+  segment_index: 1
+  gan_class_by_category:
+    Beauty: 8
+    Clothing: 3
+    Electronics: 7
+
+task_a:
+  grid_width: 12
+  grid_height: 8
+  default_customers: 18
+  customers_min: 4
+  customers_max: 60
+  default_speed: 8
+  speed_min: 2
+  speed_max: 18
+  cell_seconds: 0.35
+  experiment_runs: 20
+  congested_top_n: 5
+
+app:
+  title: UrbanStyle | Laboratorio de tienda
+  version: 0.1.0
+  window_width: 1440
+  window_height: 900
+  min_width: 1280
+  min_height: 720
+  fps: 60
+  typography:
+    title: 32
+    subtitle: 22
+    body: 16
+    label: 12
+  palette:
+    background: "#060A14"
+    panel: "#0C1424"
+    elevated: "#121D33"
+    border: "#1F2E4D"
+    primary: "#2F6BFF"
+    hover: "#4B82FF"
+    sky: "#7CC4FF"
+    deep: "#12306B"
+    text: "#F4F7FC"
+    muted: "#8FA0BF"
+    disabled: "#4A5A78"
+    error: "#FF5C6C"
+    success: "#4ADE9B"
+    category_beauty: "#7CC4FF"
+    category_clothing: "#2F6BFF"
+    category_electronics: "#FFFFFF"
