@@ -134,6 +134,7 @@ def _make_task_d() -> TaskDTab:
     tab.class_chips = [Chip(pygame.Rect(0, 0, 90, 34), name) for name in tab.classes]
     tab.seed_rect = pygame.Rect(0, 0, 200, 30)
     tab.dice_button = Button(pygame.Rect(0, 0, 38, 30), "Dado")
+    tab.seed_slider = Slider(pygame.Rect(0, 0, 150, 4), 0, 999, 42)
     tab.count_slider = Slider(pygame.Rect(0, 0, 150, 4), 1, 9, 4)
     tab.variety_slider = Slider(pygame.Rect(0, 0, 150, 4), 0.2, 1.2, 0.8)
     tab.discount_slider = Slider(pygame.Rect(0, 0, 150, 4), 5, 70, 20)
@@ -280,6 +281,7 @@ def test_tab_layouts_and_controls_stay_inside_window(size: tuple[int, int]) -> N
             *(chip.rect for chip in task_d.class_chips),
             task_d.seed_rect,
             task_d.dice_button.rect,
+            task_d.seed_slider.rect,
             task_d.count_slider.rect,
             task_d.variety_slider.rect,
             task_d.discount_slider.rect,
@@ -298,6 +300,7 @@ def test_tab_layouts_and_controls_stay_inside_window(size: tuple[int, int]) -> N
             *(chip.rect for chip in task_d.class_chips),
             task_d.seed_rect,
             task_d.dice_button.rect,
+            task_d.seed_slider.rect,
             task_d.count_slider.rect,
             task_d.variety_slider.rect,
             task_d.discount_slider.rect,

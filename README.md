@@ -85,7 +85,7 @@ La ventana contiene Inicio y las pestañas A, B, C y D. Inicio ejecuta el escena
 
 La interfaz usa una paleta azul noche con tokens centralizados en `config.yaml`: fondo `#060A14`, panel `#0C1424`, elevado `#121D33`, borde `#1F2E4D`, primario `#2F6BFF`, cielo `#7CC4FF` y texto `#F4F7FC`. Los layouts ponderados se adaptan al tamaño de ventana. Inter se incluye en `assets/fonts/Inter.ttf` bajo SIL Open Font License, distribuida en `assets/fonts/OFL-Inter.txt`; si falta la fuente, se usa Segoe UI.
 
-La pestaña D permite elegir categoría y clase con chips, editar la seed, cantidad, truncation/variedad y descuento, y seleccionar plantilla (Medianoche, Hielo o Eléctrico) y estilo (Neón o Pixel). La vista previa muestra el póster 4:5 con selección de héroe; la galería de entrenamiento permite revisar muestras, pérdidas y accuracy condicional por época. Los pósteres de 1080×1350 se guardan en `outputs/posters/` y usan luminancia con máscara alfa de gamma 0.8 y umbral suave, gradiente de color, sombra, resplandor y reflejo. La accuracy condicional describe reconocimiento de clase y no mide por sí sola calidad perceptual.
+La pestaña D permite elegir categoría y clase con chips, editar la seed (caja de texto, dado o slider 0–999), cantidad, truncation/variedad y descuento, y seleccionar plantilla (Medianoche, Hielo o Eléctrico) y estilo (Neón o Pixel). La vista previa muestra el póster 4:5 con selección de héroe; la galería de entrenamiento permite revisar muestras, pérdidas y accuracy condicional por época. Los pósteres de 1080×1350 se guardan en `outputs/posters/` y usan luminancia con máscara alfa de gamma 0.8 y umbral suave, gradiente de color, sombra, resplandor y reflejo. La accuracy condicional describe reconocimiento de clase y no mide por sí sola calidad perceptual.
 
 El mapeo categoría→clases se configura en `config.yaml`: Clothing se asocia a prendas (Camiseta, Suéter, Vestido, Abrigo y Camisa); Beauty se representa con Bolso y Electronics con Zapatilla/Botín. Fashion-MNIST no contiene cosméticos ni productos electrónicos, por lo que Beauty→accesorios y Electronics→calzado urbano son sustitutos visuales explícitos, no equivalencias semánticas del dataset. Para el póster se generan 64 candidatas y el clasificador existente ordena las tres mejores para clase; una imagen generada por el usuario puede reemplazar la primera como héroe. El copy publicitario se deriva de la decisión determinista del agente configurado: mantener produce “Nueva colección”, subir “Edición premium” y bajar calcula el descuento respecto al precio de referencia; descuentos menores al 10 % se muestran como “Precio especial”. El slider se inicializa con esa recomendación y permite un override manual explícito. Si falta modelo o calibración, se usa el slider como origen del descuento.
 
@@ -155,12 +155,12 @@ Resultados del test, corrida actual con semilla 42 y contexto de 8 semanas:
 
 | Serie | MAE LSTM | RMSE LSTM | MAE media móvil | MAE ingenuo |
 | --- | ---: | ---: | ---: | ---: |
-| Beauty · Female | 3.37 | 4.11 | 4.06 | 5.78 |
-| Beauty · Male | 2.84 | 3.20 | 3.22 | 4.00 |
-| Clothing · Female | 4.08 | 5.06 | 4.47 | 6.44 |
-| Clothing · Male | 4.17 | 5.41 | 3.42 | 2.44 |
-| Electronics · Female | 4.59 | 5.83 | 5.31 | 6.44 |
-| Electronics · Male | 3.84 | 4.09 | 3.69 | 3.56 |
+| Beauty · Female | 2.858 | 3.312 | 3.344 | 4.875 |
+| Beauty · Male | 2.624 | 3.031 | 3.281 | 4.125 |
+| Clothing · Female | 3.414 | 4.245 | 4.125 | 6.250 |
+| Clothing · Male | 3.425 | 4.459 | 3.281 | 2.625 |
+| Electronics · Female | 4.225 | 5.579 | 4.281 | 5.875 |
+| Electronics · Male | 3.565 | 3.738 | 3.313 | 3.625 |
 
 Después de excluir semanas parciales y reentrenar con semilla 42, el split quedó en 36 semanas train, 8 validación y 8 test; el mejor checkpoint se obtuvo tras 26 épocas. Para contexto 8, el MAE/RMSE medio fue **3.352/4.061** para LSTM, **3.604/4.285** para media móvil y **4.562/5.320** para ingenuo. El LSTM supera a la media móvil en **4 de 6 series**; no gana en todas, por ejemplo Clothing · Male favorece al baseline ingenuo. Ocho semanas de test por serie siguen siendo una muestra pequeña y no garantizan rendimiento futuro.
 
@@ -216,22 +216,22 @@ python scripts/train_classifier.py
 python scripts/train_gan.py --epochs 80
 ```
 
-El clasificador queda en `models/fmnist_classifier.pt`; sus métricas globales y por clase en `outputs/gan/classifier_metrics.json`. Alcanzó 91.11% test accuracy en 5 épocas; Camisa fue su clase más difícil (67.9%). El cGAN usa Adam, batch 128, smoothing real 0.9, ruido de instancia decreciente, EMA 0.999 y truncation ψ=0.8. El mejor EMA se seleccionó en época 23 por accuracy condicional: 98.75% y confianza pedida media 91.20% sobre 80 muestras fijas (8 por clase). En época 80 obtuvo 97.50%. Esta evaluación es un proxy pequeño de selección, no un test perceptual ni una revisión humana.
+El clasificador queda en `models/fmnist_classifier.pt`; sus métricas globales y por clase en `outputs/gan/classifier_metrics.json`. Alcanzó 91.30% test accuracy en 5 épocas; Camisa fue su clase más difícil (67.3%). El cGAN usa Adam, batch 128, smoothing real 0.9, ruido de instancia decreciente, EMA 0.999 y truncation ψ=0.8. El mejor EMA se seleccionó en época 38 por accuracy condicional: 97.50% y confianza pedida media 90.16% sobre 80 muestras fijas (8 por clase). En época 80 obtuvo 96.25%. Esta evaluación es un proxy pequeño de selección, no un test perceptual ni una revisión humana.
 
 Resumen de entrenamiento y evaluación de Task D:
 
 | Modelo/métrica | Resultado | Alcance |
 | --- | ---: | --- |
-| Clasificador Fashion-MNIST | 91.11% | Test, 5 épocas; Camisa 67.9% por clase |
-| Mejor EMA cGAN | 98.75% | Accuracy condicional, época 23, 80 muestras fijas |
-| Confianza de clase pedida | 91.20% | Media en la misma evaluación fija |
-| EMA cGAN, época 80 | 97.50% | Accuracy condicional |
-| Entrenamiento clasificador | 3 min 20 s | CPU validado |
-| Entrenamiento cGAN, 80 épocas | 87 min 34 s | CPU validado; normalmente 50–60 s/época |
+| Clasificador Fashion-MNIST | 91.30% | Test, 5 épocas; Camisa 67.3% por clase |
+| Mejor EMA cGAN | 97.50% | Accuracy condicional, época 38, 80 muestras fijas |
+| Confianza de clase pedida | 90.16% | Media en la misma evaluación fija |
+| EMA cGAN, época 80 | 96.25% | Accuracy condicional |
+| Entrenamiento clasificador | ≈1 min 15 s | Mac M4 con MPS, sin contar la descarga |
+| Entrenamiento cGAN, 80 épocas | ≈55 min | Mac M4 con MPS; unos 41 s/época de media |
 
 La secuencia visual de épocas 5, 10, 20, 40, 60 y 80 está en `docs/cgan_epoch_*.png`; las curvas de generador/discriminador están en [docs/cgan_losses.png](docs/cgan_losses.png). Se conserva el mejor checkpoint EMA por accuracy condicional. Estos tiempos dependen del hardware; la accuracy mide coincidencia de clase, no calidad visual.
 
-El mejor generador EMA conserva la ruta `models/cgan_generator.pt`; hay checkpoints cada 10 épocas, muestras fijas en `outputs/gan/samples_epoch_XX.png`, grilla seleccionada en `outputs/gan/samples_best_ema.png`, pérdidas en `outputs/gan/losses.png` y `losses.json`, y métricas por clase/época en `outputs/gan/metrics.json`. En el CPU validado, el clasificador tardó 3 min 20 s y el cGAN 80 épocas tardó 87 min 34 s, normalmente 50–60 s por época con algunas pausas del sistema. Estos tiempos dependen del equipo. Las imágenes siguen siendo Fashion-MNIST monocromo 28×28, no fotografías de catálogo.
+El mejor generador EMA conserva la ruta `models/cgan_generator.pt`; hay checkpoints cada 10 épocas, muestras fijas en `outputs/gan/samples_epoch_XX.png`, grilla seleccionada en `outputs/gan/samples_best_ema.png`, pérdidas en `outputs/gan/losses.png` y `losses.json`, y métricas por clase/época en `outputs/gan/metrics.json`. En un Mac M4 con MPS, el clasificador tardó aproximadamente 1 min 15 s y el cGAN 80 épocas unos 55 min, con una media de 41 s por época. Estos tiempos dependen del equipo. Las imágenes siguen siendo Fashion-MNIST monocromo 28×28, no fotografías de catálogo.
 
 Opcionalmente se puede activar el plan B de estabilidad: `python scripts/train_gan.py --epochs 80 --loss hinge --spectral-norm`. DCGAN se conserva como comparación: `python scripts/train_gan.py --type dcgan --epochs 80`. Las imágenes siguen siendo prendas genéricas en escala de grises, no fotografías ni inventario específico de UrbanStyle.
 
@@ -266,7 +266,7 @@ python scripts/run_scenario.py
 python scripts/run_scenario.py --algorithm DQN --seed 123
 ```
 
-La última corrida guardada (seed 123, DQN) seleccionó Clothing (pronóstico 18.53 unidades), aplicó la acción bajar (precio 47.50, 19 unidades simuladas e ingreso 902.50) y encontró 29 visitas en la celda más congestionada del layout clásico. El cGAN usó la clase proxy “Vestido” y sugirió 5% de descuento. Es una demostración reproducible del pipeline, no una recomendación comercial ni una validación de calidad de los modelos.
+La última corrida guardada (seed 42, PPO) seleccionó Clothing (pronóstico 18.15 unidades), aplicó la acción subir (precio 52.50, 16 unidades simuladas e ingreso 840) y encontró 24 visitas en la celda más congestionada del layout clásico. El cGAN usó la clase proxy “Vestido”, sin descuento (0%) y con el texto “Edición premium”. Es una demostración reproducible del pipeline, no una recomendación comercial ni una validación de calidad de los modelos.
 
 La ayuda global se abre/cierra con `F1` o `H`. Los números `1`–`5` navegan pestañas, `Espacio` pausa A/C, `R` reinicia A/C, `F11` alterna pantalla completa, `Ctrl+S` guarda captura y `Esc` cierra la ayuda o la app.
 

@@ -21,6 +21,7 @@ def test_generation_runs_off_the_ui_thread_and_is_collected() -> None:
     tab.seed_text = "42"
     tab.seed_value = 42
     tab.seed_focused = False
+    tab.seed_slider = SimpleNamespace(value=42)
     tab.class_id = 7
     tab.count_slider = SimpleNamespace(value=3)
     tab.variety_slider = SimpleNamespace(value=0.8)

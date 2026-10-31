@@ -346,7 +346,7 @@ def _results_asset(path: Path) -> Path:
         ("3.352", "MAE LSTM · unidades"),
         ("4 / 6", "series vs media móvil"),
         ("31 877", "margen PPO · simulación"),
-        ("98.75 %", "accuracy condicional cGAN"),
+        ("97.50 %", "accuracy condicional cGAN"),
     )
     figure, axis = plt.subplots(figsize=(11, 4))
     figure.patch.set_facecolor(COLORS["background"])

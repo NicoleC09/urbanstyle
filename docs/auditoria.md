@@ -1,13 +1,13 @@
 # Auditoría del proyecto UrbanStyle
 
-Fecha: 2026-10-23. Base: checkout local, configuración y artefactos existentes. Validación ejecutada en Windows con el entorno `.venv`.
+Fecha: 2026-10-23. Base: checkout local, configuración y artefactos existentes. Validación ejecutada en Windows con el entorno `.venv`. Actualizada el 2026-10-30 con los artefactos regenerados en un Mac M4 (MPS para clasificador y cGAN).
 
 ## Estado de ejecución
 
 - `python -m pytest -q`: **50 passed**, 14 avisos de deprecación de Pyparsing/Matplotlib; ningún fallo.
 - `python scripts/evaluate_all.py`: terminó correctamente y regeneró evaluación de Task B (CSV de métricas y predicciones de test) y Task C (CSV, JSON y gráfico de pricing).
-- Entrenamiento de referencia vigente: LSTM seed 42, 26 épocas por early stopping; PPO 12 000 pasos seed 42; DQN 12 000 pasos seed 43; cGAN seed 42, 80 épocas, CPU, 60 000 imágenes; clasificador 5 épocas.
-- Los checkpoints esperados están presentes: `models/lstm.pt`, `models/ppo.zip`, `models/dqn.zip`, `models/cgan_generator.pt`, `models/fmnist_classifier.pt` y `models/dcgan_generator.pt`, además de checkpoints cGAN por épocas.
+- Entrenamiento de referencia vigente: LSTM seed 42, 26 épocas por early stopping; PPO 12 000 pasos seed 42; DQN 12 000 pasos seed 43; cGAN seed 42, 80 épocas, MPS, 60 000 imágenes; clasificador 5 épocas.
+- Los checkpoints esperados están presentes: `models/lstm.pt`, `models/ppo.zip`, `models/dqn.zip`, `models/cgan_generator.pt` y `models/fmnist_classifier.pt`, además de checkpoints cGAN por épocas. `models/dcgan_generator.pt` no se regeneró.
 
 ## Inventario funcional
 
@@ -16,9 +16,9 @@ Fecha: 2026-10-23. Base: checkout local, configuración y artefactos existentes.
 | A · Pathfinding | Implementada | BFS y A* sobre grilla 12×8, tres layouts, 20 corridas × 24 clientes. En las tres configuraciones evaluadas A* expandió menos nodos que BFS; el camino y permanencia agregados son iguales por layout. | Menos nodos no implica necesariamente menor tiempo medible en todo mapa; el tiempo es milisegundos en simulación local. Congestión depende de seed y desempates. |
 | B · Forecast | Implementada | CSV fuente 1 000 transacciones; 52 semanas completas, seis series y 8 semanas test. Contexto 8: LSTM MAE/RMSE 3.352/4.061; media móvil 3.604/4.285; ingenuo 4.562/5.320. LSTM vence a media móvil en 4/6 y al ingenuo en 5/6. | Muy pocas semanas/test; Clothing·Male no es la mejor con LSTM. No afirmar que el modelo gana en todas las series. |
 | C · Pricing RL | Implementada y reentrenada | Reward de margen, coste 0.55×, precio 0.6×–4×, paso 0.05× y horizonte 64. 100 episodios pareados: PPO/DQN 31 877.25 ± 3 874.71 de margen; óptimo teórico 31 920.33 ± 3 958.47. | Elasticidad de las tres categorías = fallback -1.2; no es causal ni calibrada. Los agentes son demostrativos, no afirmar convergencia/uso comercial. |
-| D · Generación | Implementada | Checkpoint cGAN de 80 épocas/60 000 imágenes; clasificador 91.11% test accuracy; mejor EMA 98.75% accuracy condicional en época 23 y 91.20% confianza media sobre 80 muestras fijas. Póster 1080×1350. | Accuracy condicional no es FID ni evaluación humana; las imágenes 28×28 son proxies, no productos reales. DCGAN presente es corrida de 5 épocas/6 000 imágenes. |
+| D · Generación | Implementada | Checkpoint cGAN de 80 épocas/60 000 imágenes; clasificador 91.30% test accuracy; mejor EMA 97.50% accuracy condicional en época 38 y 90.16% confianza media sobre 80 muestras fijas. Póster 1080×1350. | Accuracy condicional no es FID ni evaluación humana; las imágenes 28×28 son proxies, no productos reales. Las figuras DCGAN son de una corrida histórica de 5 épocas/6 000 imágenes. |
 | Pygame | Implementada | Inicio y pestañas A–D; 60 FPS configurados; bounds responsive y contraste WCAG AA; capturas headless en 3 resoluciones. El p95 render máximo medido fue 7.73/7.72/9.37 ms en 1280×720/1366×768/1920×1080. | Medición headless de render local, no garantía de frecuencia física en hardware externo. |
-| Integración | Implementada | Pipeline B→C→A→D; worker de escenario y worker de generación/poster en D; `scenario_summary.json` guardado. Resumen actual seed 42: Clothing, 18.53 unidades pronosticadas, acción Bajar, precio 47.50, 18 unidades, ingreso 855, congestión 24, clase proxy Vestido. | Simulación y proxy visual. La exportación del escenario registra ingreso aunque C aprende por margen; explicar ambos nombres sin confundir objetivo y métrica. |
+| Integración | Implementada | Pipeline B→C→A→D; worker de escenario y worker de generación/poster en D; `scenario_summary.json` guardado. Resumen actual seed 42: Clothing, 18.15 unidades pronosticadas, acción Subir, precio 52.50, 16 unidades, ingreso 840, congestión 24, clase proxy Vestido. | Simulación y proxy visual. La exportación del escenario registra ingreso aunque C aprende por margen; explicar ambos nombres sin confundir objetivo y métrica. |
 
 ## Datos y calibración
 
@@ -34,21 +34,21 @@ En `calibration.json`, Beauty usa fallback -1.2 porque la pendiente estimada es 
 | `models/ppo.zip`, `models/dqn.zip` | Política de pricing | Presentes, reentrenados 12 000 pasos con reward de margen |
 | `models/cgan_generator.pt` | Generador condicional principal | Presente; selección EMA, 80 épocas |
 | `models/cgan_generator_epoch_010.pt` … `_080.pt` | Checkpoints de evolución | Presentes cada 10 épocas |
-| `models/fmnist_classifier.pt` | Puntúa clase solicitada | Presente, 91.11% test accuracy |
-| `models/dcgan_generator.pt` | Comparación no condicional | Presente, corrida histórica 5 épocas/6 000 imágenes |
+| `models/fmnist_classifier.pt` | Puntúa clase solicitada | Presente, 91.30% test accuracy |
+| `models/dcgan_generator.pt` | Comparación no condicional | No regenerado; se obtiene con `python scripts/train_gan.py --type dcgan` |
 
 ## Artefactos relevantes
 
 - Forecast: `outputs/forecast_metrics.csv`, `forecast_metrics.json`, `forecast_test_predictions.csv`, `predictions.csv`, `forecast_training_curve.png`.
 - RL: `outputs/pricing_evaluation.csv`, `pricing_evaluation.json`, `pricing_evaluation.png`, `ppo_training.json`, `dqn_training.json` y curvas por agente.
 - Layout: `outputs/layout_experiment.csv` y `.png`.
-- GAN: `outputs/gan/classifier_metrics.json`, `metrics.json`, `losses.json`, `samples_epoch_*.png`, `samples_best_ema.png`, y carpetas `cgan/` y `dcgan/` con curvas/checkpoints de entrenamiento.
+- GAN: `outputs/gan/classifier_metrics.json`, `metrics.json`, `losses.json`, `samples_epoch_*.png`, `samples_best_ema.png`, y carpeta `cgan/` con curvas de entrenamiento.
 - Integración: `outputs/integration/scenario_summary.json`, póster y galería.
 - QA visual: 15 capturas en `outputs/screens/<resolución>/` y `outputs/screens/performance.csv`; imágenes 1280×720 en `docs/captura_*.png`.
 
 ## Riesgos para la demo
 
-1. Antes de salir, ejecutar `python scripts/prepare_demo.py`; los modelos/pesos y Fashion-MNIST deben estar accesibles. La ruta normal de recuperación si faltan es ejecutar `python scripts/prepare_data.py`, `python scripts/train_lstm.py`, `python scripts/train_rl.py --algorithm both --timesteps 12000`, `python scripts/train_classifier.py` y `python scripts/train_gan.py --epochs 80` (el último comando puede tardar aproximadamente 87.5 minutos en la máquina validada).
+1. Antes de salir, ejecutar `python scripts/prepare_demo.py`; los modelos/pesos y Fashion-MNIST deben estar accesibles. La ruta normal de recuperación si faltan es ejecutar `python scripts/prepare_data.py`, `python scripts/train_lstm.py`, `python scripts/train_rl.py --algorithm both --timesteps 12000`, `python scripts/train_classifier.py` y `python scripts/train_gan.py --epochs 80` (el último comando tarda unos 55 minutos en un Mac M4 con MPS y unos 87.5 en el CPU validado antes).
 2. El escenario integrado puede tardar por inferencia cGAN/póster, aunque se ejecuta fuera del hilo de UI. En demo real conviene generar el resumen/poster antes y tener captura de respaldo.
 3. Las semillas fijan la simulación; el entorno puede variar por hardware y versiones de dependencias. No prometer identidad bit-a-bit fuera del equipo.
 4. No presentar `31 920` como beneficio real: es margen simulado con ε=-1.2 y coste del 55 %.

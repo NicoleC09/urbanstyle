@@ -41,6 +41,7 @@ from app.ui.widgets import Button, Chip, SegmentedControl, Slider, Toast
 LOGGER = logging.getLogger("urbanstyle.app.task_d")
 MODEL_TYPES = {"PPO": PPO, "DQN": DQN}
 HISTORY_TABS = ("Muestras", "Curvas de pérdida", "Calidad")
+SEED_SLIDER_MAX = 999
 
 
 class TaskDTab:
@@ -62,6 +63,13 @@ class TaskDTab:
         self.seed_value = int(config["project"]["seed"])
         self.seed_text = str(self.seed_value)
         self.seed_focused = False
+        self.seed_slider = Slider(
+            pygame.Rect(0, 0, 180, 4),
+            0,
+            SEED_SLIDER_MAX,
+            self.seed_value,
+            formatter=self._seed_slider_label,
+        )
         self.count_slider = Slider(pygame.Rect(0, 0, 180, 4), 1, 9, 4)
         self.variety_slider = Slider(
             pygame.Rect(0, 0, 180, 4),
@@ -254,15 +262,16 @@ class TaskDTab:
         self.seed_rect = pygame.Rect(x, self.control_rect.y + 154, width - 46, 30)
         self.dice_button.rect.topleft = (self.seed_rect.right + 8, self.seed_rect.y)
         slider_width = width - 52
-        self.count_slider.rect = pygame.Rect(x, self.control_rect.y + 202, slider_width, 4)
-        self.variety_slider.rect = pygame.Rect(x, self.control_rect.y + 238, slider_width, 4)
-        self.discount_slider.rect = pygame.Rect(x, self.control_rect.y + 274, slider_width, 4)
+        self.seed_slider.rect = pygame.Rect(x, self.control_rect.y + 209, slider_width, 4)
+        self.count_slider.rect = pygame.Rect(x, self.control_rect.y + 241, slider_width, 4)
+        self.variety_slider.rect = pygame.Rect(x, self.control_rect.y + 273, slider_width, 4)
+        self.discount_slider.rect = pygame.Rect(x, self.control_rect.y + 305, slider_width, 4)
         selector_gap = 6
         template_width = round((width - selector_gap) * 0.62)
-        self.template_control.rect = pygame.Rect(x, self.control_rect.y + 306, template_width, 28)
+        self.template_control.rect = pygame.Rect(x, self.control_rect.y + 318, template_width, 28)
         self.style_control.rect = pygame.Rect(
             x + template_width + selector_gap,
-            self.control_rect.y + 306,
+            self.control_rect.y + 318,
             width - template_width - selector_gap,
             28,
         )
@@ -303,6 +312,8 @@ class TaskDTab:
                 self.seed_text += event.unicode
             return
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            if self.seed_focused and not self.seed_rect.collidepoint(event.pos):
+                self._commit_seed()
             self.seed_focused = self.seed_rect.collidepoint(event.pos)
             for index, chip in enumerate(self.class_chips):
                 if chip.handle_event(event):
@@ -322,6 +333,10 @@ class TaskDTab:
             self.style_control.handle_event(event)
             for button in self.history_buttons:
                 button.handle_event(event)
+        if self.seed_slider.handle_event(event):
+            self.seed_value = round(self.seed_slider.value)
+            self.seed_text = str(self.seed_value)
+            self.seed_focused = False
         self.count_slider.handle_event(event)
         self.variety_slider.handle_event(event)
         if self.discount_slider.handle_event(event):
@@ -352,6 +367,7 @@ class TaskDTab:
             self.seed_value = max(0, int(self.seed_text or 0))
             self.seed_text = str(self.seed_value)
             self.seed_focused = False
+            self._sync_seed_slider()
         except ValueError:
             self.seed_text = str(self.seed_value)
 
@@ -359,6 +375,14 @@ class TaskDTab:
         self.seed_value = random.randrange(10_000_000)
         self.seed_text = str(self.seed_value)
         self.seed_focused = False
+        self._sync_seed_slider()
+
+    def _sync_seed_slider(self) -> None:
+        self.seed_slider.value = min(self.seed_value, SEED_SLIDER_MAX)
+
+    def _seed_slider_label(self, value: float) -> str:
+        """Indica cuando la semilla real supera el rango del slider."""
+        return str(round(value)) if self.seed_value <= SEED_SLIDER_MAX else f"{SEED_SLIDER_MAX}+"
 
     def _set_history_tab(self, index: int) -> None:
         self.history_tab = index
@@ -587,11 +611,13 @@ class TaskDTab:
         )
         self.dice_button.draw(surface, fonts["label"], theme)
 
-        self._draw_label(surface, "CANTIDAD", (x, rect.y + 190), fonts["label"], theme.muted)
+        self._draw_label(surface, "SEMILLA", (x, rect.y + 187), fonts["label"], theme.muted)
+        self.seed_slider.draw(surface, fonts["label"], theme)
+        self._draw_label(surface, "CANTIDAD", (x, rect.y + 219), fonts["label"], theme.muted)
         self.count_slider.draw(surface, fonts["label"], theme)
-        self._draw_label(surface, "VARIEDAD", (x, rect.y + 229), fonts["label"], theme.muted)
+        self._draw_label(surface, "VARIEDAD", (x, rect.y + 251), fonts["label"], theme.muted)
         self.variety_slider.draw(surface, fonts["label"], theme)
-        self._draw_label(surface, "DESCUENTO", (x, rect.y + 268), fonts["label"], theme.muted)
+        self._draw_label(surface, "DESCUENTO", (x, rect.y + 283), fonts["label"], theme.muted)
         self.discount_slider.draw(surface, fonts["label"], theme)
         self.template_control.draw(surface, fonts["label"], theme)
         self.style_control.draw(surface, fonts["label"], theme)

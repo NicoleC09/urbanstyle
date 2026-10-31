@@ -80,20 +80,20 @@ El camino mínimo es común a BFS/A*; la congestión cambia por el desempate de 
 
 ### GAN
 
-La CNN clasificadora alcanzó 91.11% de test accuracy con 60 000 imágenes en 5 épocas; Camisa fue la clase más difícil con 67.9%. El nuevo cGAN completó 80 épocas con 60 000 imágenes en CPU. El mejor EMA quedó en época 23 con 98.75% accuracy condicional y 91.20% de confianza media sobre 80 muestras fijas (8 por clase); la época 80 midió 97.50%. Es un proxy pequeño de selección basado en el clasificador, no FID ni evaluación humana. El entrenamiento tardó unos 87.5 minutos en el equipo de validación.
+La CNN clasificadora alcanzó 91.30% de test accuracy con 60 000 imágenes en 5 épocas; Camisa fue la clase más difícil con 67.3%. El nuevo cGAN completó 80 épocas con 60 000 imágenes usando aceleración MPS. El mejor EMA quedó en época 38 con 97.50% accuracy condicional y 90.16% de confianza media sobre 80 muestras fijas (8 por clase); la época 80 midió 96.25%. Es un proxy pequeño de selección basado en el clasificador, no FID ni evaluación humana. El entrenamiento tardó unos 55 minutos en un Mac M4.
 
-El checkpoint DCGAN presente corresponde a una corrida histórica de 5 épocas y 6 000 imágenes; no representa el entrenamiento cGAN principal. Pérdidas finales guardadas de esa corrida:
+Las figuras DCGAN corresponden a una corrida histórica de 5 épocas y 6 000 imágenes, cuyo checkpoint no se regeneró; no representan el entrenamiento cGAN principal. Pérdidas finales guardadas de cada corrida:
 
 | Modelo | Generador | Discriminador |
 | --- | ---: | ---: |
 | DCGAN | 1.3425 | 0.8104 |
-| cGAN | 0.9581 | 1.1999 |
+| cGAN | 1.0378 | 1.2816 |
 
 La accuracy condicional sirve como proxy de control de clase, no como métrica perceptual tipo FID. Figuras: [pérdidas DCGAN](dcgan_losses.png), [muestras DCGAN](dcgan_epoch_005.png), [pérdidas cGAN](cgan_losses.png), [evolución cGAN época 5](cgan_epoch_005.png), [época 60](cgan_epoch_060.png), [época 80](cgan_epoch_080.png) y [mejor EMA](cgan_best_ema.png). Los checkpoints cGAN se guardan cada diez épocas en `models/`.
 
 ### Escenario integrado
 
-El resumen integrado guardado actual (seed 42, PPO) eligió Clothing con 18.53 unidades pronosticadas; bajó el precio a 47.50, simuló 18 unidades e ingreso 855, y encontró 24 visitas en la celda más congestionada. D generó un póster con proxy Fashion-MNIST “Vestido” y descuento del 5%. Es una demostración funcional, no una recomendación comercial.
+El resumen integrado guardado actual (seed 42, PPO) eligió Clothing con 18.15 unidades pronosticadas; subió el precio a 52.50, simuló 16 unidades e ingreso 840, y encontró 24 visitas en la celda más congestionada. D generó un póster con proxy Fashion-MNIST “Vestido”, sin descuento (0%) y con el texto “Edición premium”. Es una demostración funcional, no una recomendación comercial.
 
 ## Limitaciones y siguientes pasos
 
