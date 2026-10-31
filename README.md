@@ -7,20 +7,21 @@
 
 UrbanStyle es una aplicación de escritorio en Pygame para explorar cuatro usos de IA en una tienda de moda ficticia: distribución y recorridos, pronóstico semanal, precios dinámicos y campañas visuales.
 
-**Autor:** Nicole Dayan Calderón Arevalo
+**Autores:** Nicole Dayan Calderón Arevalo y Santiago Carmona
 
 ## Índice
 
 - [Contexto y arquitectura](#contexto-y-arquitectura)
 - [Instalación](#instalación)
-- [Ejecución](#ejecución)
+- [Aplicación](#aplicación)
 - [Task A: recorridos y layouts](#task-a-recorridos-y-layouts)
 - [Task B: pronóstico de demanda](#task-b-pronóstico-de-demanda)
 - [Task C: precios dinámicos con RL](#task-c-precios-dinámicos-con-rl)
 - [Task D: imágenes promocionales](#task-d-imágenes-promocionales)
 - [Escenario integrado](#integración-escenario-urbanstyle)
 - [Estructura del proyecto](#estructura-del-proyecto)
-- [Pruebas y calidad](#pruebas-y-calidad)
+- [Comandos disponibles](#comandos-disponibles)
+- [Pruebas y checklist de calidad](#pruebas-y-checklist-de-calidad)
 - [Reproducibilidad, límites y licencias](#reproducibilidad-límites-y-licencias)
 
 ## Contexto y arquitectura
@@ -43,7 +44,7 @@ flowchart LR
 
 Todos los entrenamientos se ejecutan mediante scripts independientes. Pygame carga checkpoints existentes y presenta avisos accionables si faltan datos o modelos.
 
-Evidencias generadas de la corrida actual: [curva LSTM](docs/forecast_training_curve.png), [pricing RL](docs/pricing_evaluation.png), [layouts](docs/layout_experiment.png), [pérdidas DCGAN](docs/dcgan_losses.png), [muestras DCGAN](docs/dcgan_epoch_005.png), [pérdidas cGAN](docs/cgan_losses.png), [evolución cGAN · época 5](docs/cgan_epoch_005.png), [época 60](docs/cgan_epoch_060.png), [época 80](docs/cgan_epoch_080.png) y [mejor EMA](docs/cgan_best_ema.png). El CSV de layouts copiado a docs es el smoke test de una repetición; no debe leerse como comparación estadística.
+Evidencias generadas de la corrida actual: [curva LSTM](docs/forecast_training_curve.png), [pricing RL](docs/pricing_evaluation.png), [layouts](docs/layout_experiment.png), [pérdidas cGAN](docs/cgan_losses.png), [evolución cGAN · época 5](docs/cgan_epoch_005.png), [época 60](docs/cgan_epoch_060.png), [época 80](docs/cgan_epoch_080.png) y [mejor EMA](docs/cgan_best_ema.png). Las figuras DCGAN ([pérdidas](docs/dcgan_losses.png) y [muestras](docs/dcgan_epoch_005.png)) son de una corrida histórica de 5 épocas y 6 000 imágenes; su checkpoint no se regeneró.
 
 Capturas de la aplicación:
 
@@ -57,11 +58,19 @@ Capturas de la aplicación:
 
 ## Instalación
 
-- Python 3.10 o 3.11.
-- El archivo original `retail_sales_dataset.csv` en `data/raw/`.
-- Windows: los comandos usan `py -3.11`; también sirven `python` o `python3` si apuntan a Python 3.10/3.11.
+Requisitos: Python 3.10 o 3.11 y el CSV de Kaggle “Retail Sales Dataset” (Mohammad Talib) en `data/raw/retail_sales_dataset.csv`.
 
-## Instalación y preparación
+macOS o Linux:
+
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python scripts/prepare_data.py
+```
+
+Windows:
 
 ```powershell
 py -3.11 -m venv .venv
@@ -71,29 +80,31 @@ python -m pip install -r requirements.txt
 python scripts/prepare_data.py
 ```
 
-Coloca el CSV de Kaggle “Retail Sales Dataset” (Mohammad Talib) en `data/raw/retail_sales_dataset.csv`. La preparación crea las seis series semanales en `data/processed/weekly_sales.csv` y estadísticas/calibraciones en `data/processed/calibration.json`. Si falta el archivo, el script indica la ruta exacta y no inventa datos.
+Los demás comandos de este README son iguales en los tres sistemas y suponen el entorno activado.
 
-La primera instalación descarga Fashion-MNIST cuando se entrena Task D. En el CPU usado para validar, las corridas configuradas tardaron aproximadamente 5.5 s (LSTM), 22 s (PPO+DQN) y 40 s (DCGAN+cGAN). Son referencias locales; el tiempo depende del hardware, la configuración de Torch y el estado de la caché de datos.
+La preparación crea las seis series semanales en `data/processed/weekly_sales.csv` y estadísticas/calibraciones en `data/processed/calibration.json`. Si falta el archivo, el script indica la ruta exacta y no inventa datos.
+
+La primera instalación descarga Fashion-MNIST cuando se entrena Task D. En un Mac M4, LSTM y PPO+DQN tardaron unos segundos; el clasificador, unos 1 min 15 s, y el cGAN, unos 55 min. Son referencias locales; el tiempo depende del hardware, la configuración de Torch y el estado de la caché de datos.
 
 ## Aplicación
 
-```powershell
+```bash
 python -m app.main
 ```
 
 La ventana contiene Inicio y las pestañas A, B, C y D. Inicio ejecuta el escenario integrado; A permite elegir algoritmo/layout y animar tráfico; B compara pronósticos; C ejecuta episodios con modelos PPO/DQN; D genera imágenes y pósteres desde un cGAN.
 
-La interfaz usa una paleta azul noche con tokens centralizados en `config.yaml`: fondo `#060A14`, panel `#0C1424`, elevado `#121D33`, borde `#1F2E4D`, primario `#2F6BFF`, cielo `#7CC4FF` y texto `#F4F7FC`. Los layouts ponderados se adaptan al tamaño de ventana. Inter se incluye en `assets/fonts/Inter.ttf` bajo SIL Open Font License, distribuida en `assets/fonts/OFL-Inter.txt`; si falta la fuente, se usa Segoe UI.
+La interfaz usa una paleta azul noche con tokens centralizados en `config.yaml`: fondo `#060A14`, panel `#0C1424`, elevado `#121D33`, borde `#1F2E4D`, primario `#2F6BFF`, cielo `#7CC4FF` y texto `#F4F7FC`. Los layouts ponderados se adaptan al tamaño de ventana. Inter se incluye en `assets/fonts/Inter.ttf` bajo SIL Open Font License, distribuida en `assets/fonts/OFL-Inter.txt`; si falta la fuente, se usa Segoe UI o, si tampoco está instalada, la fuente por defecto de Pygame.
 
-La pestaña D permite elegir categoría y clase con chips, editar la seed (caja de texto, dado o slider 0–999), cantidad, truncation/variedad y descuento, y seleccionar plantilla (Medianoche, Hielo o Eléctrico) y estilo (Neón o Pixel). La vista previa muestra el póster 4:5 con selección de héroe; la galería de entrenamiento permite revisar muestras, pérdidas y accuracy condicional por época. Los pósteres de 1080×1350 se guardan en `outputs/posters/` y usan luminancia con máscara alfa de gamma 0.8 y umbral suave, gradiente de color, sombra, resplandor y reflejo. La accuracy condicional describe reconocimiento de clase y no mide por sí sola calidad perceptual.
+La pestaña D permite elegir categoría y clase con chips, editar la seed (caja de texto, dado o slider 0–999), cantidad, truncation/variedad y descuento, y seleccionar plantilla (Medianoche, Hielo o Eléctrico; en pantalla: Noche, Hielo y Eléc.) y estilo (Neón o Pixel). La vista previa muestra el póster 4:5 con selección de héroe; la galería de entrenamiento permite revisar muestras, pérdidas y accuracy condicional por época. Los pósteres de 1080×1350 se guardan en `outputs/posters/` y usan luminancia con máscara alfa de gamma 0.8 y umbral suave, gradiente de color, sombra, resplandor y reflejo. La accuracy condicional describe reconocimiento de clase y no mide por sí sola calidad perceptual.
 
 El mapeo categoría→clases se configura en `config.yaml`: Clothing se asocia a prendas (Camiseta, Suéter, Vestido, Abrigo y Camisa); Beauty se representa con Bolso y Electronics con Zapatilla/Botín. Fashion-MNIST no contiene cosméticos ni productos electrónicos, por lo que Beauty→accesorios y Electronics→calzado urbano son sustitutos visuales explícitos, no equivalencias semánticas del dataset. Para el póster se generan 64 candidatas y el clasificador existente ordena las tres mejores para clase; una imagen generada por el usuario puede reemplazar la primera como héroe. El copy publicitario se deriva de la decisión determinista del agente configurado: mantener produce “Nueva colección”, subir “Edición premium” y bajar calcula el descuento respecto al precio de referencia; descuentos menores al 10 % se muestran como “Precio especial”. El slider se inicializa con esa recomendación y permite un override manual explícito. Si falta modelo o calibración, se usa el slider como origen del descuento.
 
-Validación de esta fase: `python -m pytest tests/test_gan_generation.py tests/test_layout_no_overflow.py -q`. Las pruebas verifican tamaño exacto y formato PNG en las tres plantillas, reglas del copy según acción/precio, transparencia de fondo negro y bounds de los controles en 1280×720, 1366×768 y 1920×1080. La captura de la pestaña D está en [docs/captura_task_d.png](docs/captura_task_d.png).
+Validación de la pestaña D: `python -m pytest tests/test_gan_generation.py tests/test_layout_no_overflow.py -q`. Las pruebas verifican tamaño exacto y formato PNG en las tres plantillas, reglas del copy según acción/precio, transparencia de fondo negro y bounds de los controles en 1280×720, 1366×768 y 1920×1080. La captura de la pestaña D está en [docs/captura_task_d.png](docs/captura_task_d.png).
 
 Inicio presenta el botón principal, stepper Demanda→Precio→Tienda→Campaña, siete KPI, sparkline de demanda, mini heatmap agregado y el póster del escenario con descarga. El escenario sigue ejecutándose en un worker; el pipeline emite progreso por etapa y serializa el tráfico para los siguientes inicios. Los resúmenes previos que no tienen heatmap conservan un hotspot de fallback basado en la celda de congestión. La captura de Inicio está en [docs/captura_inicio.png](docs/captura_inicio.png).
 
-Fase 4 se validó con `python -m pytest tests/test_integration_pipeline.py tests/test_layout_no_overflow.py -q` y con la suite completa (`python -m pytest -q`). Para comprobar visualmente la aplicación: `python -m app.main`. También se corrigieron dos cierres de Pygame: el heatmap de A mezcla ahora exclusivamente canales RGB y el halo de slider construye explícitamente un color RGBA válido.
+Inicio se validó con `python -m pytest tests/test_integration_pipeline.py tests/test_layout_no_overflow.py -q` y con la suite completa (`python -m pytest -q`). Para comprobar visualmente la aplicación: `python -m app.main`. También se corrigieron dos cierres de Pygame: el heatmap de A mezcla ahora exclusivamente canales RGB y el halo de slider construye explícitamente un color RGBA válido.
 
 Los atajos son `1`–`5` para pestañas, `Espacio` para pausar A/C, `R` para reiniciar A/C, `F11` pantalla completa, `Ctrl+S` captura y `F1` o `H` para ayuda. `Esc` cierra la ayuda o la app.
 
@@ -105,7 +116,7 @@ BFS explora por niveles y A* usa distancia Manhattan. Ambos registran nodos expa
 
 Para ejecutar el experimento reproducible (20 simulaciones por cada layout y algoritmo, 24 clientes por simulación):
 
-```powershell
+```bash
 python scripts/run_layout_experiment.py
 ```
 
@@ -121,9 +132,9 @@ La corrida actual usa las 20 repeticiones configuradas y 24 clientes por corrida
 
 La congestión depende de la ruta y la seed; se informa como resultado de estas simulaciones, no como propiedad general del layout.
 
-La pestaña A ahora presenta el suelo con perímetro y estantes en bandas, pasillos visibles, secciones con nombre completo y símbolos distintos para entrada/caja. Las tres miniaturas seleccionan layout; el toggle controla el heatmap. Los clientes tienen halo y estela, y un clic resalta la ruta completa. El panel en vivo compara BFS/A* en tarjetas con barras de nodos/tiempo y un top 5 de zonas calientes. La captura está en [docs/captura_task_a.png](docs/captura_task_a.png).
+El panel en vivo compara BFS/A* en tarjetas con barras de nodos/tiempo. La pestaña usa una sola corrida con la semilla global y 18 clientes por defecto, así que sus cifras difieren de los promedios de esta tabla. La captura está en [docs/captura_task_a.png](docs/captura_task_a.png).
 
-Pruebas de Task A y bounds: `python -m pytest tests/test_pathfinding.py tests/test_layout_no_overflow.py -q`. En esta entrega pasan 44 tests en total, `compileall` y Ruff.
+Pruebas de Task A y bounds: `python -m pytest tests/test_pathfinding.py tests/test_layout_no_overflow.py -q`. En esta entrega pasan 50 tests en total, `compileall` y Ruff.
 
 ## Task B: pronóstico de demanda
 
@@ -133,21 +144,13 @@ El LSTM comparte señal entre las seis series categoría×género y Task C consu
 
 Entrenamiento y evaluación:
 
-```powershell
+```bash
 python scripts/train_lstm.py
 python scripts/train_lstm.py --epochs 3
 python scripts/evaluate_lstm.py
 ```
 
 `python scripts/evaluate_lstm.py` reevalúa el checkpoint existente sin entrenar. `python scripts/evaluate_all.py` vuelve a generar las métricas test de B y las métricas de C; no reentrena ninguno de los modelos.
-
-En el CPU usado para validar, la corrida LSTM configurada tardó aproximadamente 5.5 segundos y seleccionó 29 épocas por early stopping. El tiempo depende del hardware y de los threads disponibles.
-
-```powershell
-python scripts/train_lstm.py
-python scripts/train_rl.py
-python scripts/evaluate_all.py
-```
 
 El entrenamiento guarda `models/lstm.pt`, MAE/RMSE por serie y contexto en `outputs/forecast_metrics.csv`, valores reales/predichos del test en `outputs/forecast_test_predictions.csv`, pronóstico de la semana siguiente en `outputs/predictions.csv`, curva en `outputs/forecast_training_curve.png` y resumen en JSON. La pestaña B solo carga estos artefactos: no entrena en vivo. Permite cambiar serie, elegir contexto 4/8/12 semanas ya precomputado, ocultar/mostrar baselines y exportar el pronóstico.
 
@@ -162,7 +165,7 @@ Resultados del test, corrida actual con semilla 42 y contexto de 8 semanas:
 | Electronics · Female | 4.225 | 5.579 | 4.281 | 5.875 |
 | Electronics · Male | 3.565 | 3.738 | 3.313 | 3.625 |
 
-Después de excluir semanas parciales y reentrenar con semilla 42, el split quedó en 36 semanas train, 8 validación y 8 test; el mejor checkpoint se obtuvo tras 26 épocas. Para contexto 8, el MAE/RMSE medio fue **3.352/4.061** para LSTM, **3.604/4.285** para media móvil y **4.562/5.320** para ingenuo. El LSTM supera a la media móvil en **4 de 6 series**; no gana en todas, por ejemplo Clothing · Male favorece al baseline ingenuo. Ocho semanas de test por serie siguen siendo una muestra pequeña y no garantizan rendimiento futuro.
+Después de excluir semanas parciales y reentrenar con semilla 42, el split quedó en 36 semanas train, 8 validación y 8 test. El entrenamiento se detuvo tras 26 épocas por early stopping y el mejor checkpoint es el de la época 1 (MSE de validación normalizado 1.038): la validación no mejoró después, de modo que el modelo aporta poca señal más allá del nivel medio de cada serie. Para contexto 8, el MAE/RMSE medio fue **3.352/4.061** para LSTM, **3.604/4.285** para media móvil y **4.562/5.320** para ingenuo. El LSTM supera a la media móvil en **4 de 6 series**; no gana en todas, por ejemplo Clothing · Male favorece al baseline ingenuo. Ocho semanas de test por serie siguen siendo una muestra pequeña y no garantizan rendimiento futuro.
 
 La pestaña B ofrece seis chips de serie, ventanas precalculadas 4/8/12, toggle de baselines y zoom en test. El gráfico muestra el test sombreado, series con estilos diferenciados, crosshair/tooltip y el valor LSTM de la semana siguiente; la tabla presenta MAE/RMSE, mejor valor por serie y promedio. La próxima semana incluye delta frente al último valor observado. Captura: [docs/captura_task_b.png](docs/captura_task_b.png).
 
@@ -176,17 +179,17 @@ La demanda esperada sigue `unidades_base × (precio/precio_referencia)^elasticid
 
 Entrena los dos agentes fuera de la aplicación; la UI únicamente carga modelos existentes:
 
-```powershell
+```bash
 python scripts/train_rl.py
 python scripts/train_rl.py --algorithm PPO --timesteps 12000
 python scripts/train_rl.py --algorithm DQN --timesteps 12000
 ```
 
-Modelos en `models/ppo.zip` y `models/dqn.zip`; curvas y resúmenes de entrenamiento en `outputs/`. El comando usa 12 000 pasos por agente; en el CPU de validación, PPO+DQN tardaron unos 22 segundos en total. Son modelos pequeños en un entorno simplificado y no se afirma convergencia ni validez comercial.
+Modelos en `models/ppo.zip` y `models/dqn.zip`; curvas y resúmenes de entrenamiento en `outputs/`. El comando usa 12 000 pasos por agente. Son modelos pequeños en un entorno simplificado y no se afirma convergencia ni validez comercial.
 
 Evalúa con al menos 100 episodios compartidos entre agentes y políticas estáticas:
 
-```powershell
+```bash
 python scripts/evaluate_rl.py --episodes 100
 ```
 
@@ -211,12 +214,12 @@ Fashion-MNIST se descarga automáticamente mediante Torchvision a `data/processe
 
 Primero entrena el clasificador y luego el cGAN de calidad:
 
-```powershell
+```bash
 python scripts/train_classifier.py
 python scripts/train_gan.py --epochs 80
 ```
 
-El clasificador queda en `models/fmnist_classifier.pt`; sus métricas globales y por clase en `outputs/gan/classifier_metrics.json`. Alcanzó 91.30% test accuracy en 5 épocas; Camisa fue su clase más difícil (67.3%). El cGAN usa Adam, batch 128, smoothing real 0.9, ruido de instancia decreciente, EMA 0.999 y truncation ψ=0.8. El mejor EMA se seleccionó en época 38 por accuracy condicional: 97.50% y confianza pedida media 90.16% sobre 80 muestras fijas (8 por clase). En época 80 obtuvo 96.25%. Esta evaluación es un proxy pequeño de selección, no un test perceptual ni una revisión humana.
+El clasificador queda en `models/fmnist_classifier.pt`; sus métricas globales y por clase en `outputs/gan/classifier_metrics.json`. Admite hasta 20 épocas y se detiene al alcanzar la meta de 91 %: llegó a 91.30% test accuracy en 5 épocas; Camisa fue su clase más difícil (67.3%). El cGAN usa Adam, batch 128, smoothing real 0.9, ruido de instancia decreciente, EMA 0.999 y truncation ψ=0.8. El mejor EMA se seleccionó en época 38 por accuracy condicional: 97.50% y confianza pedida media 90.16% sobre 80 muestras fijas (8 por clase). En época 80 obtuvo 96.25%. Esta evaluación es un proxy pequeño de selección, no un test perceptual ni una revisión humana.
 
 Resumen de entrenamiento y evaluación de Task D:
 
@@ -229,20 +232,22 @@ Resumen de entrenamiento y evaluación de Task D:
 | Entrenamiento clasificador | ≈1 min 15 s | Mac M4 con MPS, sin contar la descarga |
 | Entrenamiento cGAN, 80 épocas | ≈55 min | Mac M4 con MPS; unos 41 s/época de media |
 
-La secuencia visual de épocas 5, 10, 20, 40, 60 y 80 está en `docs/cgan_epoch_*.png`; las curvas de generador/discriminador están en [docs/cgan_losses.png](docs/cgan_losses.png). Se conserva el mejor checkpoint EMA por accuracy condicional. Estos tiempos dependen del hardware; la accuracy mide coincidencia de clase, no calidad visual.
+La secuencia visual de épocas 1, 5, 10, 20, 40, 60 y 80 está en `outputs/gan/samples_epoch_XX.png`, y `docs/` incluye las épocas 5, 60 y 80; las curvas de generador/discriminador están en [docs/cgan_losses.png](docs/cgan_losses.png). Se conserva el mejor checkpoint EMA por accuracy condicional. Estos tiempos dependen del hardware; la accuracy mide coincidencia de clase, no calidad visual.
 
-El mejor generador EMA conserva la ruta `models/cgan_generator.pt`; hay checkpoints cada 10 épocas, muestras fijas en `outputs/gan/samples_epoch_XX.png`, grilla seleccionada en `outputs/gan/samples_best_ema.png`, pérdidas en `outputs/gan/losses.png` y `losses.json`, y métricas por clase/época en `outputs/gan/metrics.json`. En un Mac M4 con MPS, el clasificador tardó aproximadamente 1 min 15 s y el cGAN 80 épocas unos 55 min, con una media de 41 s por época. Estos tiempos dependen del equipo. Las imágenes siguen siendo Fashion-MNIST monocromo 28×28, no fotografías de catálogo.
+El mejor generador EMA conserva la ruta `models/cgan_generator.pt`; hay checkpoints cada 10 épocas, muestras fijas en `outputs/gan/samples_epoch_XX.png`, pérdidas en `outputs/gan/losses.png` y `losses.json`, y métricas por clase/época en `outputs/gan/metrics.json`. Las imágenes siguen siendo Fashion-MNIST monocromo 28×28, no fotografías de catálogo.
 
-Opcionalmente se puede activar el plan B de estabilidad: `python scripts/train_gan.py --epochs 80 --loss hinge --spectral-norm`. DCGAN se conserva como comparación: `python scripts/train_gan.py --type dcgan --epochs 80`. Las imágenes siguen siendo prendas genéricas en escala de grises, no fotografías ni inventario específico de UrbanStyle.
+`outputs/gan/samples_best_ema.png` no lo crea ningún script del proyecto: se generó aparte con el mejor checkpoint y el mismo ruido fijo. `scripts/export_presentation_assets.py` lo necesita y falla si no existe.
+
+Opcionalmente se puede activar el plan B de estabilidad: `python scripts/train_gan.py --epochs 80 --loss hinge --spectral-norm`. DCGAN se conserva como comparación: `python scripts/train_gan.py --type dcgan --epochs 80`; `models/dcgan_generator.pt` no forma parte de la corrida actual.
 
 Generación reproducible y póster:
 
-```powershell
+```bash
 python scripts/generate_poster.py --type cgan --class-id 7 --seed 42 --count 6
 python scripts/generate_poster.py --type cgan --class-id 7 --seed 42 --count 6 --discount 20 --poster
 ```
 
-El mismo checkpoint, clase y seed producen el mismo ruido y salida. La pestaña D selecciona clase, seed, cantidad y descuento; permite generar, aleatorizar, revisar muestras por época, guardar una galería o componer un póster PNG con marca UrbanStyle. La app solo carga el checkpoint; si no existe, muestra el comando de entrenamiento.
+El mismo checkpoint, clase y seed producen el mismo ruido y salida. La pestaña D selecciona clase, seed, cantidad y descuento; permite generar, aleatorizar, revisar muestras por época y componer un póster PNG con marca UrbanStyle. La app solo carga el checkpoint; si no existe, muestra el comando de entrenamiento.
 
 Pruebas de Task D: `python -m pytest tests/test_gan_models.py tests/test_gan_generation.py -q`.
 
@@ -261,14 +266,12 @@ Los parámetros de escenario se pueden cambiar en `config.yaml` bajo `integratio
 
 También puedes lanzar el mismo flujo sin interfaz:
 
-```powershell
+```bash
 python scripts/run_scenario.py
 python scripts/run_scenario.py --algorithm DQN --seed 123
 ```
 
 La última corrida guardada (seed 42, PPO) seleccionó Clothing (pronóstico 18.15 unidades), aplicó la acción subir (precio 52.50, 16 unidades simuladas e ingreso 840) y encontró 24 visitas en la celda más congestionada del layout clásico. El cGAN usó la clase proxy “Vestido”, sin descuento (0%) y con el texto “Edición premium”. Es una demostración reproducible del pipeline, no una recomendación comercial ni una validación de calidad de los modelos.
-
-La ayuda global se abre/cierra con `F1` o `H`. Los números `1`–`5` navegan pestañas, `Espacio` pausa A/C, `R` reinicia A/C, `F11` alterna pantalla completa, `Ctrl+S` guarda captura y `Esc` cierra la ayuda o la app.
 
 Pruebas de integración: `python -m pytest tests/test_integration_pipeline.py -q`.
 
@@ -277,10 +280,11 @@ Pruebas de integración: `python -m pytest tests/test_integration_pipeline.py -q
 ```text
 urbanstyle/
 ├── app/                  # Ventana Pygame, widgets y pestañas
+├── assets/fonts/         # Fuente Inter y su licencia
 ├── config.yaml           # Semillas, rutas, hiperparámetros y paleta
 ├── data/raw/             # CSV original (ignorado por Git)
-├── data/processed/       # Series, calibración y Fashion-MNIST descargado
-├── docs/                 # Informe y guion de presentación
+├── data/processed/       # Series, calibración y Fashion-MNIST (ignorados por Git)
+├── docs/                 # Enunciado, informe, auditoría, guías, capturas y figuras
 ├── models/               # Checkpoints entrenados (ignorados por Git)
 ├── outputs/              # Métricas, figuras y campañas (ignorados por Git)
 ├── scripts/              # Preparación, entrenamiento y evaluación
@@ -292,11 +296,24 @@ urbanstyle/
 
 `make install`, `make data`, `make train-all`, `make train-lstm`, `make train-rl`, `make train-gan`, `make evaluate`, `make evaluate-lstm`, `make evaluate-rl`, `make app`, `make test`, `make layout-experiment` y `make scenario` están definidos. En Windows sin GNU Make, ejecuta directamente los comandos Python mostrados arriba.
 
-`make train-all` entrena LSTM, PPO/DQN y ambos GAN en ese orden. No ejecuta evaluaciones; usa `make evaluate` para regenerar los reportes después de entrenar.
+`make train-all` ejecuta `train_lstm.py`, `train_rl.py` y `train_gan.py` (solo cGAN). No entrena el clasificador ni DCGAN, y el cGAN necesita `models/fmnist_classifier.pt`, así que en una instalación nueva no sirve por sí solo. Tampoco ejecuta evaluaciones; usa `make evaluate` para regenerar los reportes después de entrenar.
+
+Para regenerar todo desde cero, usa este orden. `train_lstm.py` debe ir antes de `train_classifier.py` porque crea la carpeta `models/`:
+
+```bash
+python scripts/prepare_data.py
+python scripts/train_lstm.py
+python scripts/train_rl.py --algorithm both --timesteps 12000
+python scripts/train_classifier.py
+python scripts/train_gan.py --epochs 80
+python scripts/run_layout_experiment.py
+python scripts/evaluate_all.py
+python scripts/run_scenario.py
+```
 
 ## Pruebas y checklist de calidad
 
-```powershell
+```bash
 python -m pytest -q
 python -m compileall -q app scripts src tests
 python scripts/capture_screens.py
@@ -306,7 +323,7 @@ python scripts/evaluate_all.py
 python scripts/run_scenario.py --seed 42
 ```
 
-`scripts/capture_screens.py` ejecuta el mismo render de la app en modo headless, guarda las cinco pestañas a 1280×720, 1366×768 y 1920×1080 en `outputs/screens/`, actualiza las capturas de 1280×720 en `docs/` y genera `outputs/screens/performance.csv`. El perfil final (30 frames por pestaña y resolución) midió el tiempo de render sin `Clock.tick()` e incluyendo `display.flip`: el peor p95 fue 7.73 ms en 1280×720, 7.72 ms en 1366×768 y 9.37 ms en 1920×1080, por debajo del presupuesto de 16.67 ms/frame de 60 FPS en las 15 combinaciones. Es una medición headless del render en este equipo, no una garantía de refresco físico en todo hardware. La app limita el loop a 60 FPS y las inferencias/campañas pesadas se ejecutan fuera del hilo Pygame.
+`scripts/capture_screens.py` ejecuta el mismo render de la app en modo headless, guarda las cinco pestañas a 1280×720, 1366×768 y 1920×1080 en `outputs/screens/`, actualiza las capturas de 1280×720 en `docs/` y genera `outputs/screens/performance.csv`. El perfil final (30 frames por pestaña y resolución) midió el tiempo de render sin `Clock.tick()` e incluyendo `display.flip`: el peor p95 fue 3.23 ms en 1280×720, 3.32 ms en 1366×768 y 4.29 ms en 1920×1080, por debajo del presupuesto de 16.67 ms/frame de 60 FPS en las 15 combinaciones. Es una medición headless del render en un Mac M4, no una garantía de refresco físico en todo hardware. El script guarda el primer frame de las animaciones, por lo que las capturas actuales de `docs/` se tomaron aparte, con las animaciones ya terminadas. La app limita el loop a 60 FPS y las inferencias/campañas pesadas se ejecutan fuera del hilo Pygame.
 
 La regresión `tests/test_layout_no_overflow.py` verifica bounds en las tres resoluciones y contraste WCAG AA ≥ 4.5:1 para texto principal y atenuado sobre fondo, panel y panel elevado. `tests/test_task_d_async.py` comprueba que la generación cGAN ocurre en un worker y que el hilo de UI recoge el resultado sin esperar.
 

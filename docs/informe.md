@@ -40,6 +40,8 @@ DCGAN y cGAN se entrenan con Fashion-MNIST. El cGAN nuevo es convolucional, usa 
 
 La evaluación actual cubre 8 objetivos semanales por serie. El LSTM supera a la media móvil en 4 de 6 series y al ingenuo en 5 de 6; no gana en todas. En Clothing · Male, MAE LSTM = 3.425 frente a 3.281 de la media móvil y 2.625 del baseline ingenuo.
 
+El entrenamiento se detuvo tras 26 épocas por early stopping y el mejor checkpoint es el de la época 1 (MSE de validación normalizado 1.038). La validación no mejoró después, de modo que el modelo aporta poca señal más allá del nivel medio de cada serie. Esto explica por qué su pronóstico se ve casi plano y por qué las ventanas de 4, 8 y 12 semanas dan casi el mismo error.
+
 | Serie | MAE LSTM | RMSE LSTM | MAE media móvil | MAE ingenuo |
 | --- | ---: | ---: | ---: | ---: |
 | Beauty · Female | 2.858 | 3.312 | 3.344 | 4.875 |
@@ -98,7 +100,7 @@ El resumen integrado guardado actual (seed 42, PPO) eligió Clothing con 18.15 u
 ## Limitaciones y siguientes pasos
 
 - Dataset sintético, pequeño y con solo tres categorías y un año de transacciones.
-- Pocas semanas para entrenamiento y test de la serie temporal; algunas series contienen ceros frecuentes.
+- Pocas semanas para entrenamiento y test de la serie temporal; algunas series contienen ceros frecuentes. El mejor LSTM es el de la época 1, señal de que aprendió poco con estos datos.
 - Elasticidad reemplazada por un fallback configurable en las tres categorías.
 - Segmentos RL son multiplicadores de sensibilidad, no cohortes estimadas del CSV.
 - El entorno no modela inventario, faltantes, costes variables ni competencia.
@@ -110,7 +112,7 @@ El resumen integrado guardado actual (seed 42, PPO) eligió Clothing con 18.15 u
 
 La interfaz usa en `config.yaml` una paleta azul/negro/blanco: fondo `#060A14`, panel `#0C1424`, elevado `#121D33`, primario `#2F6BFF`, cielo `#7CC4FF` y texto `#F4F7FC`. El chequeo de Fase 8 genera capturas headless de Inicio y A–D a 1280×720, 1366×768 y 1920×1080. Bounds y contraste WCAG AA pasan para el texto principal y atenuado sobre fondo, panel y panel elevado.
 
-El perfil de render de 30 frames por vista y resolución registró p95 máximo de 7.73, 7.72 y 9.37 ms, respectivamente, bajo el presupuesto de 16.67 ms/frame. Es una medición headless local, no una garantía de refresco físico. La aplicación limita el loop a 60 FPS y las tareas pesadas de escenario/campaña se ejecutan en workers.
+El perfil de render de 30 frames por vista y resolución registró p95 máximo de 3.23, 3.32 y 4.29 ms, respectivamente, bajo el presupuesto de 16.67 ms/frame. Es una medición headless local, no una garantía de refresco físico. La aplicación limita el loop a 60 FPS y las tareas pesadas de escenario/campaña se ejecutan en workers.
 
 ## Reproducibilidad
 
